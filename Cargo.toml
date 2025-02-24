@@ -2,9 +2,20 @@
 name = "leptos_transition_group"
 version = "0.1.0"
 edition = "2021"
+readme = "./README.md"
+authors = ["luoxiaozero"]
+description = "Used to create transitions and animations based on state changes"
+homepage = "https://github.com/thaw-ui/leptos-transition-group"
+repository = "https://github.com/thaw-ui/leptos-transition-group"
+license = "MIT"
 
 [dependencies]
 leptos = { version = "0.7.7" }
 thaw_utils = { version = "0.1.1" }
 send_wrapper = "0.6.0"
 web-sys = "0.3.70"
+
+[workspace]
+members = [
+    "examples/demo"
+]

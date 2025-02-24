@@ -28,7 +28,7 @@ use thaw_utils::{add_event_listener, ArcCallback, EventListenerHandle, NextFrame
 /// use leptos::prelude::*;
 /// let show = RwSignal::new(false);
 /// view!{
-///     <button on:click=|| show.update(|v| *v = !v)>"Toggle"</button>
+///     <button on:click=move |_| show.update(|v| *v = !*v)>"Toggle"</button>
 ///     <CSSTransition
 ///         show=show
 ///         name="fade"
