@@ -6,8 +6,10 @@ use leptos::{
     prelude::*,
     tachys::html::{node_ref::node_ref, style::style},
 };
+use send_wrapper::SendWrapper;
 use std::{ops::Deref, time::Duration};
-use thaw_utils::{add_event_listener, ArcCallback, EventListenerHandle, NextFrame};
+use thaw_utils::{add_event_listener, ArcOneCallback, EventListenerHandle, NextFrame};
+use web_sys::HtmlElement;
 
 /// # CSSTransition
 ///
@@ -62,12 +64,12 @@ pub fn CSSTransition<T>(
     /// Whether to apply transition on initial render.
     #[prop(optional)]
     appear: bool,
-    #[prop(optional, into)] on_before_enter: Option<ArcCallback>,
-    #[prop(optional, into)] on_enter: Option<ArcCallback>,
-    #[prop(optional, into)] on_after_enter: Option<ArcCallback>,
-    #[prop(optional, into)] on_before_leave: Option<ArcCallback>,
-    #[prop(optional, into)] on_leave: Option<ArcCallback>,
-    #[prop(optional, into)] on_after_leave: Option<ArcCallback>,
+    #[prop(optional, into)] on_before_enter: Option<ArcOneCallback<HtmlElement>>,
+    #[prop(optional, into)] on_enter: Option<ArcOneCallback<HtmlElement>>,
+    #[prop(optional, into)] on_after_enter: Option<ArcOneCallback<HtmlElement>>,
+    #[prop(optional, into)] on_before_leave: Option<ArcOneCallback<HtmlElement>>,
+    #[prop(optional, into)] on_leave: Option<ArcOneCallback<HtmlElement>>,
+    #[prop(optional, into)] on_after_leave: Option<ArcOneCallback<HtmlElement>>,
     children: TypedChildren<T>,
 ) -> impl IntoView
 where
@@ -189,12 +191,14 @@ where
                 {
                     // on_enter
                     if let Some(on_before_enter) = on_before_enter.as_ref() {
-                        on_before_enter();
+                        on_before_enter(el.clone());
                     }
+
                     let enter_from = format!("{name}-enter-from");
                     let enter_active = format!("{name}-enter-active");
                     let enter_to = format!("{name}-enter-to");
 
+                    // enter-from enter-active
                     let _ = class_list.add_2(&enter_from, &enter_active);
                     let _ = style.set_property("display", "");
 
@@ -202,21 +206,26 @@ where
                     let on_end = on_end.clone();
                     let on_enter = on_enter.clone();
                     let on_after_enter = on_after_enter.clone();
+                    let el = el.clone();
                     next_frame.run(move || {
+                        // enter-active enter-to
                         let _ = class_list.remove_1(&enter_from);
                         let _ = class_list.add_1(&enter_to);
 
-                        let class_list = send_wrapper::SendWrapper::new(class_list);
-                        let remove = Box::new(move || {
-                            let _ = class_list.remove_2(&enter_active, &enter_to);
-                            if let Some(on_after_enter) = on_after_enter.as_ref() {
-                                on_after_enter();
-                            }
-                        });
+                        let remove = {
+                            let class_list = SendWrapper::new(class_list);
+                            let el = SendWrapper::new(el.clone());
+                            Box::new(move || {
+                                let _ = class_list.remove_2(&enter_active, &enter_to);
+                                if let Some(on_after_enter) = on_after_enter.as_ref() {
+                                    on_after_enter(el.deref().clone());
+                                }
+                            })
+                        };
                         on_end(remove);
 
                         if let Some(on_enter) = on_enter.as_ref() {
-                            on_enter();
+                            on_enter(el);
                         }
                     });
                 }
@@ -225,12 +234,14 @@ where
                 {
                     // on_leave
                     if let Some(on_before_leave) = on_before_leave.as_ref() {
-                        on_before_leave();
+                        on_before_leave(el.clone());
                     }
+
                     let leave_from = format!("{name}-leave-from");
                     let leave_active = format!("{name}-leave-active");
                     let leave_to = format!("{name}-leave-to");
 
+                    // leave-from leave-active
                     let _ = class_list.add_2(&leave_from, &leave_active);
 
                     let class_list = class_list.clone();
@@ -238,22 +249,28 @@ where
                     let on_end = on_end.clone();
                     let on_leave = on_leave.clone();
                     let on_after_leave = on_after_leave.clone();
+                    let el = el.clone();
                     next_frame.run(move || {
+                        // leave-active leave-to
                         let _ = class_list.remove_1(&leave_from);
                         let _ = class_list.add_1(&leave_to);
 
-                        let class_list = send_wrapper::SendWrapper::new(class_list);
-                        let style = send_wrapper::SendWrapper::new(style);
-                        let remove = Box::new(move || {
-                            let _ = class_list.remove_2(&leave_active, &leave_to);
-                            let _ = style.set_property("display", "none");
-                            if let Some(on_after_leave) = on_after_leave.as_ref() {
-                                on_after_leave();
-                            }
-                        });
+                        let remove = {
+                            let class_list = SendWrapper::new(class_list);
+                            let style = SendWrapper::new(style);
+                            let el = SendWrapper::new(el.clone());
+                            Box::new(move || {
+                                let _ = class_list.remove_2(&leave_active, &leave_to);
+                                let _ = style.set_property("display", "none");
+                                if let Some(on_after_leave) = on_after_leave.as_ref() {
+                                    on_after_leave(el.deref().clone());
+                                }
+                            })
+                        };
                         on_end(remove);
+
                         if let Some(on_leave) = on_leave {
-                            on_leave();
+                            on_leave(el);
                         }
                     });
                 }
