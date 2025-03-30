@@ -11,11 +11,8 @@ license = "MIT"
 
 [dependencies]
 leptos = { version = "0.8.0-beta" }
-thaw_utils = { git = "https://github.com/thaw-ui/thaw", branch = "thaw/v0.5" }
 send_wrapper = "0.6.0"
 web-sys = "0.3.70"
 
 [workspace]
-members = [
-    "examples/demo"
-]
+members = ["examples/demo"]

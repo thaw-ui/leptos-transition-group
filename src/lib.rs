@@ -1,4 +1,6 @@
 mod get_transition_info;
+mod use_next_frame;
+mod utils;
 
 use get_transition_info::{get_transition_info, AnimationTypes, CSSTransitionInfo};
 use leptos::{
@@ -8,7 +10,8 @@ use leptos::{
 };
 use send_wrapper::SendWrapper;
 use std::{ops::Deref, time::Duration};
-use thaw_utils::{add_event_listener, ArcOneCallback, EventListenerHandle, NextFrame};
+use use_next_frame::NextFrame;
+use utils::{add_event_listener, ArcOneCallback, EventListenerHandle};
 use web_sys::HtmlElement;
 
 /// # CSSTransition
@@ -75,7 +78,7 @@ pub fn CSSTransition<T>(
 where
     T: AddAnyAttr + IntoView + Send + 'static,
 {
-    let target_ref = NodeRef::<thaw_utils::HtmlElement>::new();
+    let target_ref = NodeRef::<utils::HtmlElement>::new();
     let next_frame = NextFrame::new();
     let end_handle = StoredValue::new(None::<EventListenerHandle>);
     let end_count = StoredValue::new(None::<usize>);
